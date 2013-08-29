@@ -310,7 +310,7 @@ ChartBuilder = {
 		var scatterIndex = 0;
 		var seriesContainer = $("#seriesItems")
 		this.isMultiAxis = false;
-    
+
 		for (var i=0; i < g.series.length; i++) {
 			s = g.series[i]
 			seriesItem = $('<div class="seriesItemGroup">\
@@ -757,9 +757,9 @@ ChartBuilder.start = function(config) {
 				ChartBuilder.createChartImage();
 			}
 			$("#downloadLinksDiv").toggleClass("hide");
-  	})
-		  	
-  	$("#csvInput").bind("paste", function(e) {
+  	});
+    
+    $("#csvInput").bind("paste", function(e) {
   		//do nothing special
   	});
 										
@@ -911,5 +911,9 @@ ChartBuilder.start = function(config) {
   		
   		chart.titleLine.text(chart.title);
   	});
+    
+  	$(".downloadLink").click(function() {
+      $(".downloadLink").toggleClass("hide")
+  	}); 
   })
 };
