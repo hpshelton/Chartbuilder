@@ -556,7 +556,7 @@ function Gneiss(config)
 			}
 		}
 					
-		//set extremes in y axis objects and create scales
+		// Set the domain and range of the y-axis
 		for (var i = y.length - 1; i >= 0; i--) {
 			if(!y[i].scale) {
 				y[i].scale = d3.scale.linear();
@@ -583,11 +583,11 @@ function Gneiss(config)
 		/*
 			calulates and stores the proper amount of extra padding beyond what the user specified (to account for axes, titles, legends, meta)
 		*/
-		var g = this,
-			padding_top = g.defaultPadding().top,
-			padding_bottom = g.defaultPadding().bottom,
-			padding_left = g.defaultPadding().left,
-			padding_right = g.defaultPadding().right
+		var g = this;
+		var padding_top = g.defaultPadding().top;
+		var padding_bottom = g.defaultPadding().bottom;
+		var padding_left = g.defaultPadding().left;
+		var padding_right = g.defaultPadding().right;
 		
 		if(!g.legend()) {
 			padding_top = 5;
@@ -596,19 +596,27 @@ function Gneiss(config)
 		padding_top += (g.yAxis().length == 1 && !g.isBargrid()) ? 0 : 25;
 		
 		if(g.isBargrid()) {
-			padding_top += -15;
+			padding_top -= 15;
 			padding_bottom -= 15;
-			
-			padding_right += 0;
 		}
 		
+		/* This should be the correct syntax, but this causes an infinite loop since
+		 * we apparently listen for changes to the left and right padding elsewhere:
+		 *
+		 *	g.padding({
+		 *	  top: padding_top,
+		 *    bottom: padding_bottom,
+		 *    left: padding_left,
+		 *    right: padding_right
+		 *  });
+		 */
 		g.padding().top = padding_top;
 		g.padding().bottom = padding_bottom;
 		
 		d3.select("#plotArea")
-			.attr("transform","translate("+g.padding().left+","+g.padding().top+")")
-			.attr("width",g.width()-g.padding().left-g.padding().right)
-			.attr("height",g.height()-g.padding().top-g.padding().bottom)
+			.attr("transform", "translate(" + g.padding().left + "," + g.padding().top + ")")
+			.attr("width", g.width() - g.padding().left - g.padding().right)
+			.attr("height", g.height() - g.padding().top - g.padding().bottom);
 			
 		return this;
 	};
@@ -622,7 +630,7 @@ function Gneiss(config)
 		var x = g.xAxis();
 		var data = g.xAxisRef()[0].data;
 		
-		// Calculate extremes of x-axis
+		// Set the domain of the x-axis
 		if(x.type == "date") {
 			var dateExtent = d3.extent(data);
 			
@@ -659,22 +667,16 @@ function Gneiss(config)
 		return this;		
 	};
   
-  this.setLineMakers = function Gneiss$setLineMakers(first) {
+  this.setLineMakers = function Gneiss$setLineMakers() {
 		var g = this;
 
 		for (var i = g.yAxis().length - 1; i >= 0; i--){
-			if(first || !g.yAxis()[i].line) {
-						g.yAxis()[i].line = d3.svg.line();
-						g.yAxis()[i].line.y(function(d,j){return d||d===0?g.yAxis()[yAxisIndex].scale(d):null})
-						g.yAxis()[i].line.x(function(d,j){return d||d===0?g.xAxis().scale(g.xAxisRef()[0].data[j]):null})
-			}
-			else {
-				for (var i = g.yAxis().length - 1; i >= 0; i--){
-					g.yAxis()[i].line.y(function(d,j){return d||d===0?g.yAxis()[yAxisIndex].scale(d):null})
-					g.yAxis()[i].line.x(function(d,j){return d||d===0?g.xAxis().scale(g.xAxisRef()[0].data[j]):null})
-				};
-			}
-
+			var y = g.yAxis()[i];
+			y.line = d3.svg.line();
+			
+			// TODO: The reference here to the global yAxisIndex should be replaced
+			y.line.y(function(d,j) { return d || d===0 ? g.yAxis()[yAxisIndex].scale(d) : null });
+			y.line.x(function(d,j) { return d || d===0 ? g.xAxis().scale(g.xAxisRef()[0].data[j]) : null });
 		}
 		return this;
 	};
@@ -931,7 +933,7 @@ function Gneiss(config)
 				
 				if(g.xAxis().type == "date") {
 					if(g.xAxis().ticks === null || !isNaN(g.xAxis().ticks)) {
-						//auto suggest the propper tick gap
+						//auto suggest the proper tick gap
 						var timeSpan = g.xAxis().scale.domain()[1]-g.xAxis().scale.domain()[0],
 										months = timeSpan/2592000000,
 										years = timeSpan/31536000000;
@@ -1009,7 +1011,7 @@ function Gneiss(config)
 			
 			if(g.xAxis().type == "date") {
 				if(g.xAxis().ticks === null || !isNaN(g.xAxis().ticks)) {
-					//auto suggest the propper tick gap
+					//auto suggest the proper tick gap
 					var timeSpan = g.xAxis().scale.domain()[1]-g.xAxis().scale.domain()[0],
 									months = timeSpan/2592000000,
 									years = timeSpan/31536000000;
@@ -1081,32 +1083,29 @@ function Gneiss(config)
 			.attr("text-anchor", g.xAxis().type == "date" ? (g.seriesByType().column.length>0 && g.seriesByType().line.length == 0 && g.seriesByType().scatter.length == 0 ? "middle":"start"): (g.isBargrid() ? "end":"middle"))
 			//.attr("text-anchor", g.isBargrid ? "end":"middle")
 			.each(function() {
-				var pwidth = this.parentNode.getBoundingClientRect().width
-				var attr = this.parentNode.getAttribute("transform")
-				var attrx = Number(attr.split("(")[1].split(",")[0])
-				var attry = Number(attr.split(")")[0].split(",")[1])
+				var pwidth = this.parentNode.getBoundingClientRect().width;
+				var attr = this.parentNode.getAttribute("transform");
+				var attrx = Number(attr.split("(")[1].split(",")[0]);
+				var attry = Number(attr.split(")")[0].split(",")[1]);
 				if(!g.isBargrid()) {
 					// fix labels to not fall off edge when not bargrid
 					if (pwidth/2 + attrx >  g.width()) {
-						this.setAttribute("x",Number(this.getAttribute("x"))-(pwidth + attrx -  g.width() + g.padding().right))
-						this.setAttribute("text-anchor","start")
+						this.setAttribute("x",Number(this.getAttribute("x"))-(pwidth + attrx -  g.width() + g.padding().right));
+						this.setAttribute("text-anchor","start");
 					}
 					else if (attrx - pwidth/2 < 0) {
-						this.setAttribute("text-anchor","start")
+						this.setAttribute("text-anchor","start");
 					}
-					g.padding().left = g.defaultPadding().left
+					g.padding().left = g.defaultPadding().left;
 				}
 				else {
 					//adjust padding for bargrid
 					if(g.padding().left - pwidth < g.defaultPadding().left) {
 						g.padding().left = pwidth + g.defaultPadding().left;
 						g.redraw() //CHANGE (maybe)
-					}
-					
+					}					
 				}
-			});
-		
-			
+			});			
       
 		return this;
 	};
@@ -1177,7 +1176,7 @@ function Gneiss(config)
 		var g = this;
 		
 		//construct line maker Gneiss.helper functions for each yAxis
-		this.setLineMakers(first);
+		this.setLineMakers();
 		
 		//store split by type for convenience
 		var sbt = g.seriesByType();
