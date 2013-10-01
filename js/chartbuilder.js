@@ -783,8 +783,8 @@ ChartBuilder.start = function(config) {
   			dataObj = ChartBuilder.mergeData(dataObj)
   			
   			if(dataObj.datetime) {
-  				chart.xAxis.type = "date";
-  				chart.xAxis.formatter = chart.xAxis.formatter?chart.xAxis.formatter:"M";
+  				chart.xAxis().type = "date";
+  				chart.xAxis().formatter = chart.xAxis().formatter ? chart.xAxis().formatter : "M";
   			}
   			else {
   				chart.xAxis().type = "ordinal";
