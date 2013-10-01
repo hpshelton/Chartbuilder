@@ -840,7 +840,7 @@ ChartBuilder.start = function(config) {
 		var val = $(this).val().split(" ")
 		//if the selected option has two words set it as the number of ticks
 		//else set ticks to null
-		chart.xAxis.ticks = val.length > 1 ? val : null
+		chart.xAxis().ticks = val.length > 1 ? val : null
 		ChartBuilder.redraw()
 		ChartBuilder.inlineAllStyles();
 	})
