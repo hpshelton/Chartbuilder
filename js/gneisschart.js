@@ -592,8 +592,8 @@ function Gneiss(config)
 		if(!g.legend()) {
 			padding_top = 5;
 		}
-		padding_top += (g.title() == "" || g.series().length == 1) ? 0 : 25;
-		padding_top += (g.yAxis().length == 1 && !g.isBargrid()) ? 0 : 25;
+		padding_top += (g.title() === "" || g.series().length === 1) ? 0 : 25;
+		padding_top += (g.yAxis().length === 1 && !g.isBargrid()) ? 0 : 25;
 		
 		if(g.isBargrid()) {
 			padding_top -= 15;
@@ -711,8 +711,6 @@ function Gneiss(config)
 				.attr("transform", rightAxis ? "translate(" + g.padding().left + ",0)" : "translate(" + (g.width() - g.padding().right) + ",0)")
 				.call(y.axis);
 			
-			this.customYAxisFormat(axisGroup, i);			
-
 			// Store the top-most axis item for future use
 			var topAxisItem = {y: Infinity};
 
@@ -729,14 +727,25 @@ function Gneiss(config)
 								.split(",")[1]
 					);
 					
-					// Store the axisItem's text label element. 
-					// This can't be optimized to store just the function text() used below since
-					// that function's implementation depends on 'this' being an SVG element
-					axisItem.textElement = element.select("text");
+					// Color the right axis the default color, or the left axis if there is no right axis.
+					// Color all other axii the color of the first series charted against them.
+					// TODO: This should be true for all axii containing multiple series so that all axii
+					//       with only one series (including the right axis) get that series color 
+					//       and every other axis gets the default color.
+					var colorPrimaryColor = rightAxis || g.yAxis()[0].domain[0] == undefined;
 					
+					// Store the axisItem's text label element
+					axisItem.textElement = element.select("text")
+						// Position the axis label on top of the axis line
+						.attr("text-anchor", rightAxis ? "end" : "start")
+						.attr("x", function(){ var elemx = Number(d3.select(this).attr("x")); return rightAxis ? elemx : elemx + 4})
+						.attr("y", -9)
+						// Color the axis labels the correct color
+						.attr("fill", colorPrimaryColor ? "#666666" : g.yAxis()[i].color);
+						
 					// Apply line stroke formatting
-					element.select("line").attr("stroke", "#E6E6E6");
-					
+					element.select("line").attr("stroke", "#E6E6E6");					
+				
 					// Apply the label prefix as appropriate
 					switch(y.prefix.use) {
 						case "all":
@@ -844,32 +853,6 @@ function Gneiss(config)
 		d3.selectAll("#ground").each(function(){ this.parentNode.prependChild(this); });
 				
 		return this;
-	};
-  
-	this.customYAxisFormat = function Gneiss$customYAxisFormat(axisGroup, i) {
-		var g = this;
-		
-		axisGroup.selectAll("g")
-			.each(function(d,j) {
-				//create an object to store axisItem info
-				var axisItem = {}
-				
-				//store the position of the axisItem
-				//(figure it out by parsing the transfrom attribute)
-				axisItem.y = parseFloat(d3.select(this)
-					.attr("transform")
-						.split(")")[0]
-							.split(",")[1]
-					)
-				
-				//store the text element of the axisItem
-				//align the text right position it on top of the line
-				axisItem.text = d3.select(this).select("text")
-					.attr("text-anchor",i==0?"end":"start")
-					.attr("fill",i==0?"#666666":g.yAxis()[i].color)
-					.attr("x",function(){var elemx = Number(d3.select(this).attr("x")); return i==0?elemx:elemx+4})
-					.attr("y",-9)
-				});
 	};
   
   this.setXAxis = function Gneiss$setXAxis(first) {

@@ -428,16 +428,23 @@ ChartBuilder = {
 				}
 				
 				var leftAxisIsUsed = false;
+				var rightAxisIsUsed = false;
 				for(var i = 0; i < chart.series().length; i++) {
-					if(chart.series()[i].axis == 1) {
+					if(chart.series()[i].axis === 1) {
 						leftAxisIsUsed = true;
+					}
+					if(chart.series()[i].axis === 0) {
+						rightAxisIsUsed = true;
 					}
 				}
 				
-				if(chart.yAxis().length > 1 && !leftAxisIsUsed)
-				{
+				if(chart.yAxis().length > 1 && !leftAxisIsUsed) {
 					chart.yAxis().pop();
 				}
+				/* TODO: Uncomment when Gneisschart no longer assumes that yAxis()[0] exists if yAxis()[1] does
+				if(chart.yAxis().length > 1 && !rightAxisIsUsed) {
+					delete chart.yAxis()[0];
+				}*/
 				
 				chart.setYScales()
 					.setYAxes()
