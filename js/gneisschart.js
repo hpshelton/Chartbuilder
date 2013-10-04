@@ -465,7 +465,7 @@ function Gneiss(config)
 		this.calculateColumnWidths()
 			.setYScales()
 			.setXScales()
-			.setYAxes(true)
+			.setYAxes()
 			.setXAxis(true);
 				
 		this.drawSeriesAndLegend(true);
@@ -592,7 +592,7 @@ function Gneiss(config)
 		if(!g.legend()) {
 			padding_top = 5;
 		}
-		padding_top += g.title() == "" || g.series().length == 1 ? 0 : 25;
+		padding_top += (g.title() == "" || g.series().length == 1) ? 0 : 25;
 		padding_top += (g.yAxis().length == 1 && !g.isBargrid()) ? 0 : 25;
 		
 		if(g.isBargrid()) {
@@ -681,7 +681,7 @@ function Gneiss(config)
 		return this;
 	};
   
-  this.setYAxes = function Gneiss$setYAxes(first) {
+  this.setYAxes = function Gneiss$setYAxes() {
 		/*
 		*
 		* Y-Axis Drawing Section
@@ -689,85 +689,72 @@ function Gneiss(config)
 		*/
 		var g = this;
 		
-		//CHANGE
-		if(g.yAxis().length === 1) {
-			d3.select("#leftAxis").remove();
-		}
+		d3.select("#leftAxis").remove();			
+		d3.select("#rightAxis").remove();
 
-		for (var i = g.yAxis().length - 1; i >= 0; i--){
+		for (var i = g.yAxis().length - 1; i >= 0; i--) {
 			var y = g.yAxis()[i];
 			var rightAxis = (i === 0);
 			var axisGroup;
 						
-			if(first || y.axis === undefined) {
-				// Create a new y-axis
-				y.axis = d3.svg.axis()
-					.scale(y.scale)
-					.orient(rightAxis ? "right" : "left")
-					.tickSize(g.width() - g.padding().left - g.padding().right)
-					//.ticks(g.yAxis()[0].ticks) // I'm not using built in ticks because it is too opinionated
-					.tickValues(y.tickValues ? y.tickValues : Gneiss.helper.exactTicks(y.scale.domain(), g.yAxis()[0].ticks));
-					
-				// Append y-axis to chart container
-				axisGroup = g.chartElement().append("g")
-					.attr("class", "axis yAxis")
-					.attr("id", rightAxis ? "rightAxis" : "leftAxis")
-					.attr("transform", rightAxis ? "translate(" + g.padding().left + ",0)" : "translate(" + (g.width() - g.padding().right) + ",0)")
-					.call(y.axis);
-			}
-			else {
-				y.axis//.ticks(`)[0].ticks) // I'm not using built in ticks because it is too opinionated
-					.tickValues(y.tickValues ? y.tickValues : Gneiss.helper.exactTicks(y.scale.domain(), g.yAxis()[0].ticks));
-					
-				axisGroup = g.chartElement().selectAll(rightAxis ? "#rightAxis" : "#leftAxis")
-					.call(y.axis);				
-			}
+			y.axis = d3.svg.axis()
+				.scale(y.scale)
+				.orient(rightAxis ? "right" : "left")
+				.tickSize(g.width() - g.padding().left - g.padding().right)
+				//.ticks(g.yAxis()[0].ticks) // I'm not using built in ticks because it is too opinionated
+				.tickValues(y.tickValues ? y.tickValues : Gneiss.helper.exactTicks(y.scale.domain(), g.yAxis()[0].ticks));
 				
-			// Adjust label position and add prefix and suffix
-			var topAxisLabel;
-			var minY = Infinity;
+			// Append y-axis to chart container
+			axisGroup = g.chartElement().append("g")
+				.attr("class", "axis yAxis")
+				.attr("id", rightAxis ? "rightAxis" : "leftAxis")
+				.attr("transform", rightAxis ? "translate(" + g.padding().left + ",0)" : "translate(" + (g.width() - g.padding().right) + ",0)")
+				.call(y.axis);
 			
 			this.customYAxisFormat(axisGroup, i);			
-			
+
+			// Store the top-most axis item for future use
+			var topAxisItem = {y: Infinity};
+
+			// Adjust label position and add prefixes and suffixes to labels				
 			axisGroup
 				.selectAll("g")
 				.each(function(d,j) {
-					//create an object to store axisItem info
+					var element = d3.select(this);
 					var axisItem = {};
 					
-					//store the position of the axisItem
-					//(figure it out by parsing the transfrom attribute)
-					axisItem.y = parseFloat(d3.select(this)
-						.attr("transform")
+					// Parse the transform attribute and store the axisItem's position
+					axisItem.y = parseFloat(element.attr("transform")
 							.split(")")[0]
 								.split(",")[1]
 					);
 					
-					//store the text element of the axisItem
-					axisItem.text = d3.select(this).select("text");
-
-					//store the line element of the axisItem	
-					axisItem.line = d3.select(this).select("line")
-						.attr("stroke","#E6E6E6");
+					// Store the axisItem's text label element. 
+					// This can't be optimized to store just the function text() used below since
+					// that function's implementation depends on 'this' being an SVG element
+					axisItem.textElement = element.select("text");
 					
-					//apply the prefix as appropriate
+					// Apply line stroke formatting
+					element.select("line").attr("stroke", "#E6E6E6");
+					
+					// Apply the label prefix as appropriate
 					switch(y.prefix.use) {
 						case "all":
-							//if the prefix is supposed to be on every axisItem label, put it there
-							axisItem.text.text(y.prefix.value + axisItem.text.text());
+							// If the prefix is supposed to be on every axisItem label, put it there
+							axisItem.textElement.text(y.prefix.value + axisItem.textElement.text());
 						break;
 						
 						case "positive":
-							//if the prefix is supposed to be on positive values and it's positive, put it there
-							if(parseFloat(axisItem.text.text()) > 0) {
-								axisItem.text.text(y.prefix.value + axisItem.text.text());
+							// If the prefix is supposed to be on positive values and this value is positive, put it there
+							if(parseFloat(axisItem.textElement.text()) > 0) {
+								axisItem.textElement.text(y.prefix.value + axisItem.textElement.text());
 							}
 						break;
 						
 						case "negative":
-							//if the prefix is supposed to be on negative values and it's negative, put it there
-							if(parseFloat(axisItem.text.text()) < 0) {
-								axisItem.text.text(y.prefix.value + axisItem.text.text());
+							// If the prefix is supposed to be on negative values and this value is negative, put it there
+							if(parseFloat(axisItem.textElement.text()) < 0) {
+								axisItem.textElement.text(y.prefix.value + axisItem.textElement.text());
 							}
 						break;
 						
@@ -776,24 +763,24 @@ function Gneiss(config)
 						break;
 					}
 					
-					//apply the suffix as appropriate
+					// Apply the label suffix as appropriate
 					switch(y.suffix.use) {
 						case "all":
-							//if the suffix is supposed to be on every axisItem label, put it there
-							axisItem.text.text(axisItem.text.text() + y.suffix.value)
+							// If the suffix is supposed to be on every axisItem label, put it there
+							axisItem.textElement.text(axisItem.textElement.text() + y.suffix.value)
 						break;
 
 						case "positive":
-							//if the suffix is supposed to be on positive values and it's positive, put it there
-							if(parseFloat(axisItem.text.text()) > 0) {
-								axisItem.text.text(axisItem.text.text() + y.suffix.value)
+							// If the suffix is supposed to be on positive values and this value is positive, put it there
+							if(parseFloat(axisItem.textElement.text()) > 0) {
+								axisItem.textElement.text(axisItem.textElement.text() + y.suffix.value)
 							}
 						break;
 
 						case "negative":
-							//if the suffix is supposed to be on negative values and it's negative, put it there
-							if(parseFloat(axisItem.text.text()) < 0) {
-								axisItem.text.text(axisItem.text.text() + y.suffix.value)
+							// If the suffix is supposed to be on negative values and this value is negative, put it there
+							if(parseFloat(axisItem.textElement.text()) < 0) {
+								axisItem.textElement.text(axisItem.textElement.text() + y.suffix.value)
 							}
 						break;
 
@@ -802,67 +789,53 @@ function Gneiss(config)
 						break;
 					}
 					
-					//find the top most axisItem
-					//store its text element
-					if(axisItem.y < minY) {
-						topAxisLabel = axisItem.text;
-						g.topAxisItem = axisItem;
-						minY = axisItem.y;
-					}					
+					// If this is the top-most axisItem, store its text element
+					if(axisItem.y < topAxisItem.y) {
+						topAxisItem = axisItem;
+					}
 					
-					if(parseFloat(axisItem.text.text()) === 0) {
-						if(d == 0) {
-							//if the axisItem represents the zero line
-							//change it's class and make sure there's no decimal
-							//axisItem.line.attr("stroke","#666666")
-							d3.select(this).classed("zero", true);
-							axisItem.text.text("0");
+					if(parseFloat(axisItem.textElement.text()) === 0) {
+						if(d === 0) {
+							// If this axisItem represents the zero line, make sure there's no decimal
+							element.classed("zero", true);
+							axisItem.textElement.text("0");
 						}
 						else {
-							// A non-zero value was rounded into a zero
-							// hide the whole group
-							this.style("display","none");
+							// A non-zero value was rounded into a zero, so hide the whole group
+							this.style("display", "none");
 						}						
 					}
 				});
 				
-			if(topAxisLabel) {
-				var text = topAxisLabel.text();
-				
+			if(topAxisItem.y !== Infinity) {				
 				// Add the prefix and suffix to the top-most label as appropriate
-				if(y.suffix.use == "top" && y.prefix.use == "top") {
-					// Add both prefix and suffix		
-					topAxisLabel.text(y.prefix.value + text + y.suffix.value);
+				if (y.suffix.use == "top") {
+					topAxisItem.textElement.text(topAxisItem.textElement.text() + y.suffix.value);
 				}
-				else if (y.suffix.use == "top") {
-					// Add only the suffix
-					topAxisLabel.text(text + y.suffix.value);
-				}
-				else if(y.prefix.use == "top") {
-					// Add only the prefix
-					topAxisLabel.text(y.prefix.value + text);
+				if(y.prefix.use == "top") {
+					topAxisItem.textElement.text(y.prefix.value + topAxisItem.textElement.text());
 				}
 			}
 		}
 		
 		if(g.isBargrid()) {
-			d3.selectAll(".yAxis").style("display","none");
+			d3.selectAll(".yAxis").style("display", "none");
 			g.titleElement().attr("y", g.padding().top - 36);
 		}
 		else {
-			//isn't a bargrid
 			d3.selectAll(".yAxis").style("display", null);
 			
 			if(g.yAxis().length === 1) {
-				if(!g.legend() || g.series().length == 1) {
-					g.titleElement().attr("y", g.topAxisItem.y - 4);
+				if(!g.legend() || g.series().length === 1) {
+					g.titleElement().attr("y", topAxisItem.y - 4);
 				}
 				else {
-					g.titleElement().attr("y", g.topAxisItem.y - 25);
+					g.titleElement().attr("y", topAxisItem.y - 25);
 				}
 			}
 			else {
-				g.titleElement().attr("y", g.padding().top - 36);
+				// If there is more than one y-axis, the axii start 25 px lower
+				g.titleElement().attr("y", g.padding().top - 50);
 			}
 		}
 		
