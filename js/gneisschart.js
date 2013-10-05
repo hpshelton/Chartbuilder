@@ -189,10 +189,11 @@ Gneiss.helper = {
     
     return ticks;
   },  
-  transformCoordOf: function(elem){
-    var separator = elem.attr("transform").indexOf(",") > -1 ? "," : " ";
-    var trans = elem.attr("transform").split(separator);
-    return { x: (trans[0] ? parseFloat(trans[0].split("(")[1]) : 0), y: (trans[1] ? parseFloat(trans[1].split(")")[0] ): 0) };
+  getTransformCoordinates: function(elem) {
+    var transform = elem.attr("transform");
+    var separator = transform.indexOf(",") > -1 ? "," : " ";
+    var trans = transform.split(separator);
+    return { x: (trans[0] ? parseFloat(trans[0].split("(")[1]) : 0), y: (trans[1] ? parseFloat(trans[1].split(")")[0]) : 0) };
   }
 };
 
@@ -953,29 +954,31 @@ function Gneiss(config)
 		g.chartElement().selectAll("#xAxis text")
 			.attr("text-anchor", x.type === "date" ? "middle" : (g.isBargrid() ? "end" : "middle"))
 			.each(function() {
-				var pwidth = this.parentNode.getBoundingClientRect().width;
-				var attr = this.parentNode.getAttribute("transform");
-				var attrx = Number(attr.split("(")[1].split(",")[0]);
-				var attry = Number(attr.split(")")[0].split(",")[1]);
+				var parentWidth = this.parentNode.getBoundingClientRect().width;
+				var halfParentWidth = parentWidth / 2;
+				
+				var coord = Gneiss.helper.getTransformCoordinates(d3.select(this.parentNode));
+								
 				if(!g.isBargrid()) {
-					// fix labels to not fall off edge when not bargrid
-					if (pwidth/2 + attrx >  g.width()) {
-						this.setAttribute("x",Number(this.getAttribute("x"))-(pwidth + attrx -  g.width() + g.padding().right));
-						this.setAttribute("text-anchor","start");
+					// Fix labels to not fall off edge when not bargrid
+					// TODO: This logic needs to be fixed
+					if (halfParentWidth + coord.x > g.width()) {
+						this.setAttribute("x", Number(this.getAttribute("x")) - (parentWidth + coord.x - g.width() + g.padding().right));
+						this.setAttribute("text-anchor", "start");
 					}
-					else if (attrx - pwidth/2 < 0) {
-						this.setAttribute("text-anchor","start");
+					else if (coord.x - halfParentWidth < 0) {
+						this.setAttribute("text-anchor", "start");
 					}
 					g.padding().left = g.defaultPadding().left;
 				}
 				else {
-					//adjust padding for bargrid
-					if(g.padding().left - pwidth < g.defaultPadding().left) {
-						g.padding().left = pwidth + g.defaultPadding().left;
+					// Adjust padding for bargrid
+					if(g.padding().left - parentWidth < g.defaultPadding().left) {
+						g.padding().left = parentWidth + g.defaultPadding().left;
 						g.redraw() //CHANGE (maybe)
 					}					
 				}
-			});			
+			});
       
 		return this;
 	};
@@ -1456,11 +1459,11 @@ function Gneiss(config)
 						//label isn't for the first series
 						var prev = d3.select(legendGroups[0][i]);
 						var prevWidth = parseFloat(prev.node().getBoundingClientRect().width);
-						var prevCoords = Gneiss.helper.transformCoordOf(prev);
+						var prevCoords = Gneiss.helper.getTransformCoordinates(prev);
 
 						var cur = d3.select(this);
 						var curWidth = parseFloat(cur.node().getBoundingClientRect().width);
-						var curCoords = Gneiss.helper.transformCoordOf(cur);
+						var curCoords = Gneiss.helper.getTransformCoordinates(cur);
 
 						legendItemY = prevCoords.y;
 						var x = prevCoords.x + prevWidth + 5;
