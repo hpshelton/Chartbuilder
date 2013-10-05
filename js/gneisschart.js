@@ -466,7 +466,7 @@ function Gneiss(config)
 			.setYScales()
 			.setXScales()
 			.setYAxes()
-			.setXAxis(true);
+			.setXAxis();
 				
 		this.drawSeriesAndLegend(true);
 		
@@ -723,8 +723,8 @@ function Gneiss(config)
 					
 					// Parse the transform attribute and store the axisItem's position
 					axisItem.y = parseFloat(element.attr("transform")
-							.split(")")[0]
-								.split(",")[1]
+						.split(")")[0]
+							.split(",")[1]
 					);
 					
 					// Color the right axis the default color, or the left axis if there is no right axis.
@@ -855,171 +855,101 @@ function Gneiss(config)
 		return this;
 	};
   
-  this.setXAxis = function Gneiss$setXAxis(first) {
+  this.setXAxis = function Gneiss$setXAxis() {
+		/*
+		*
+		* X-Axis Drawing Section
+		*
+		*/
 		var g = this;
-    
-		if(first) {
-			/*
-			*
-			* X-Axis Drawing Section
-			*
-			*/
-			g.xAxis().axis = d3.svg.axis()
-				.scale(g.xAxis().scale)
-				.orient(g.isBargrid() ? "left" : "bottom")
-				.tickFormat(g.xAxis().formatter ? Gneiss.dateParsers[g.xAxis().formatter] : function(d) {return d})
-				.ticks(g.xAxis().ticks)
+		var x = g.xAxis();
+		
+		d3.select("#xAxis").remove();
+		
+		x.axis = d3.svg.axis()
+			.scale(x.scale)
+			.orient(g.isBargrid() ? "left" : "bottom")
+			.tickFormat(x.formatter ? Gneiss.dateParsers[x.formatter] : function(d) { return d; })
+			.ticks(g.isBargrid() ? g.series()[0].data.length : x.ticks);
 				
-				if(g.xAxis().type == "date") {
-					if(g.xAxis().ticks === null || !isNaN(g.xAxis().ticks)) {
-						//auto suggest the proper tick gap
-						var timeSpan = g.xAxis().scale.domain()[1]-g.xAxis().scale.domain()[0],
-										months = timeSpan/2592000000,
-										years = timeSpan/31536000000;
-									
-						if(years > 30) {
-							yearGap = 10
-						}
-						if(years > 15) {
-							yearGap = 5;
-						}
-						else {
-							yearGap = 1;
-						}
-						switch(g.xAxis().formatter) {
-						   // "mmddyyyy":
-						   // "mmdd"
-							case "yy":
-								g.xAxis().axis.ticks(d3.time.years,yearGap)
-							break;
-
-							case "yyyy":
-								g.xAxis().axis.ticks(d3.time.years,yearGap)
-							break;
-
-							case "MM":
-								g.xAxis().axis.ticks(d3.time.months,1)
-							break;
-
-							case "M":
-								g.xAxis().axis.ticks(d3.time.months,1)
-							break;
-						   // "hmm"
-
-							case "YY":
-								g.xAxis().axis.ticks(d3.time.years,1)
-							break;
-						}
-					}
-					else if(g.xAxis().ticks instanceof Array) {
-						//use the specified tick gap
-						var gap,
-							gapString = g.xAxis().ticks[1], 
-							num = parseInt(g.xAxis().ticks[0]);
-						
-							if((/day/i).test(gapString)) {
-								gap = d3.time.days;
-							}
-							else if((/week/i).test(gapString)) {
-								gap = d3.time.weeks;
-							}
-							else if((/month/i).test(gapString)) {
-								gap = d3.time.months;
-							}
-							else if((/year/i).test(gapString)) {
-								gap = d3.time.years;
-							}
-						g.xAxis().axis.ticks(gap,num)
-					}
-					else {
-						throw new Error("xAxis.ticks set to invalid date format");
-					}
+		if(x.type == "date") {						
+			if(x.ticks === null || !isNaN(x.ticks)) {
+				// Auto suggest the proper tick gap
+				var timeSpan = x.scale.domain()[1] - x.scale.domain()[0];
+				var msInDay = 24 * 60 * 60 * 1000;
+				var months = timeSpan / (30 * msInDay);
+				var years = timeSpan / (365 * msInDay);
+				var yearGap;
+				
+				if(years > 30) {
+					yearGap = 10;
 				}
-			
-			g.chartElement().append("g")
-				.attr("class",'axis')
-				.attr("id","xAxis")
-				.attr("transform",g.isBargrid() ? "translate(" + g.padding().left + ",0)" : "translate(0," + (g.height() - g.padding().bottom + 8) + ")")
-				.call(g.xAxis().axis);			
-		}
-		else {
-			g.xAxis().axis.scale(g.xAxis().scale)
-				.tickFormat(g.xAxis().formatter ? Gneiss.dateParsers[g.xAxis().formatter] : function(d) { return d; })
-				.ticks(g.isBargrid() ? g.series()[0].data.length : g.xAxis().ticks)
-				.orient(g.isBargrid() ? "left" : "bottom")
-			
-			if(g.xAxis().type == "date") {
-				if(g.xAxis().ticks === null || !isNaN(g.xAxis().ticks)) {
-					//auto suggest the proper tick gap
-					var timeSpan = g.xAxis().scale.domain()[1]-g.xAxis().scale.domain()[0],
-									months = timeSpan/2592000000,
-									years = timeSpan/31536000000;
-									
-					if(years > 30) {
-						yearGap = 10
-					}
-					if(years > 15) {
-						yearGap = 5;
-					}
-					else {
-						yearGap = 1;
-					}
-					switch(g.xAxis().formatter) {
-					   // "mmddyyyy":
-					   // "mmdd"
-						case "yy":
-							g.xAxis().axis.ticks(d3.time.years,yearGap)
-						break;
-
-						case "yyyy":
-							g.xAxis().axis.ticks(d3.time.years,yearGap)
-						break;
-
-						case "MM":
-							g.xAxis().axis.ticks(d3.time.months,1)
-						break;
-
-						case "M":
-							g.xAxis().axis.ticks(d3.time.months,1)
-						break;
-					   // "hmm"
-
-						case "YY":
-							g.xAxis().axis.ticks(d3.time.years,1)
-						break;
-					}
-				}
-				else if(g.xAxis().ticks instanceof Array) {
-					var gap,
-						gapString = g.xAxis().ticks[1], 
-						num = parseInt(g.xAxis().ticks[0]);
-						
-						if((/day/i).test(gapString)) {
-							gap = d3.time.days;
-						}
-						else if((/week/i).test(gapString)) {
-							gap = d3.time.weeks;
-						}
-						else if((/month/i).test(gapString)) {
-							gap = d3.time.months;
-						}
-						else if((/year/i).test(gapString)) {
-							gap = d3.time.years;
-						}
-					g.xAxis().axis.ticks(gap,num)
+				else if(years > 15) {
+					yearGap = 5;
 				}
 				else {
-					throw new Error("xAxis.ticks set to invalid date format");
+					yearGap = 1;
+				}
+				
+				switch(x.formatter) {
+					// case "mmddyyyy":
+					// case "mmdd":
+					// case "hmm":
+					
+					case "yy":
+						x.axis.ticks(d3.time.years, yearGap)
+					break;
+
+					case "yyyy":
+						x.axis.ticks(d3.time.years, yearGap)
+					break;
+
+					case "MM":
+						x.axis.ticks(d3.time.months, 1)
+					break;
+
+					case "M":
+						x.axis.ticks(d3.time.months, 1)
+					break;					
+					
+					case "YY":
+						x.axis.ticks(d3.time.years, 1)
+					break;
 				}
 			}
-			
-			g.chartElement().selectAll("#xAxis")
-				.attr("transform",g.isBargrid() ? "translate(" + g.padding().left + ",0)" : "translate(0," + (g.height() - g.padding().bottom + 8) + ")")
-				.call(g.xAxis().axis)
+			else if(x.ticks instanceof Array) {
+				// Use the specified tick gap
+				var gap;
+				var gapString = x.ticks[1];
+				var num = parseInt(x.ticks[0]);
+				
+				if((/day/i).test(gapString)) {
+					gap = d3.time.days;
+				}
+				else if((/week/i).test(gapString)) {
+					gap = d3.time.weeks;
+				}
+				else if((/month/i).test(gapString)) {
+					gap = d3.time.months;
+				}
+				else if((/year/i).test(gapString)) {
+					gap = d3.time.years;
+				}
+				x.axis.ticks(gap, num);
+			}
+			else {
+				throw new Error("xAxis.ticks set to invalid date format");
+			}
 		}
 		
+		g.chartElement().append("g")
+			.attr("class", "axis")
+			.attr("id", "xAxis")
+			.attr("transform", g.isBargrid() ? "translate(" + g.padding().left + ",0)" : "translate(0," + (g.height() - g.padding().bottom + 8) + ")")
+			.call(x.axis);	
+		
 		g.chartElement().selectAll("#xAxis text")
-			.attr("text-anchor", g.xAxis().type == "date" ? (g.seriesByType().column.length>0 && g.seriesByType().line.length == 0 && g.seriesByType().scatter.length == 0 ? "middle":"start"): (g.isBargrid() ? "end":"middle"))
+			.attr("text-anchor", x.type == "date" ? (g.seriesByType().column.length>0 && g.seriesByType().line.length == 0 && g.seriesByType().scatter.length == 0 ? "middle":"start"): (g.isBargrid() ? "end":"middle"))
 			//.attr("text-anchor", g.isBargrid ? "end":"middle")
 			.each(function() {
 				var pwidth = this.parentNode.getBoundingClientRect().width;
