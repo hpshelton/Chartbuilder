@@ -447,7 +447,7 @@ ChartBuilder = {
 				}*/
 				
 				chart.setYScales()
-					.setYAxes()
+					.drawYAxes()
 					.setLineMakers();
 				ChartBuilder.redraw();
 			})

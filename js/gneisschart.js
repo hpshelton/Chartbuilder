@@ -466,13 +466,13 @@ function Gneiss(config)
 		this.calculateColumnWidths()
 			.setYScales()
 			.setXScales()
-			.setYAxes()
-			.setXAxis();
+			.drawYAxes()
+			.drawXAxis();
 				
 		this.drawSeriesAndLegend(true);
 		
 		g.footerElement(g.chartElement().append("g")
-			.attr("id", "metaInfo")
+			.attr("id", "footer")
 			.attr("transform", "translate(0," + (g.height() - 4) + ")"));
 		
 		g.sourceElement(g.footerElement().append("text")
@@ -683,7 +683,7 @@ function Gneiss(config)
 		return this;
 	};
   
-  this.setYAxes = function Gneiss$setYAxes() {
+  this.drawYAxes = function Gneiss$drawYAxes() {
 		/*
 		* Draw the y-axii and y-axii labels
 		*/
@@ -855,7 +855,7 @@ function Gneiss(config)
 		return this;
 	};
   
-  this.setXAxis = function Gneiss$setXAxis() {
+  this.drawXAxis = function Gneiss$drawXAxis() {
 		/*
 		* Draw the x-axis and x-axis labels
 		*/
@@ -1528,8 +1528,8 @@ function Gneiss(config)
 		this.setPadding()
 			.setYScales()
 			.setXScales()
-			.setYAxes()
-			.setXAxis()
+			.drawYAxes()
+			.drawXAxis()
 			.drawSeriesAndLegend();
 		return this;
 	};
