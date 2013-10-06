@@ -1058,15 +1058,17 @@ function Gneiss(config)
 		var scatterGroups;
 		var scatterDots;
 		
+		var seriesContainer;
+		
 		if(first) {
 			// Create a element to contain series
-			g.seriesContainer = g.chartElement().append("g")
-				.attr("id", "seriesContainer");				
+			seriesContainer = g.chartElement().append("g")
+				.attr("id", "seriesContainer");
 				
-			lineSeries = g.seriesContainer.selectAll("path");
-			columnSeries = g.seriesContainer.selectAll("g.seriesColumn");
-			var lineSeriesDots = g.seriesContainer.selectAll("g.lineSeriesDots");
-			var scatterSeries = g.seriesContainer.selectAll("g.seriesScatter");
+			lineSeries = seriesContainer.selectAll("path");
+			columnSeries = seriesContainer.selectAll("g.seriesColumn");
+			var lineSeriesDots = seriesContainer.selectAll("g.lineSeriesDots");
+			var scatterSeries = seriesContainer.selectAll("g.seriesScatter");
 				
 			//add columns to chart
 			columnGroups = columnSeries.data(sbt.column)
@@ -1142,17 +1144,17 @@ function Gneiss(config)
 		}
 		else {
 			//update don't create
-			
-			columnSeries = g.seriesContainer.selectAll("g.seriesColumn");
-			lineSeries = g.seriesContainer.selectAll("path");
-			lineSeriesDotGroups = g.seriesContainer.selectAll("g.lineSeriesDots");
-			var scatterSeries = g.seriesContainer.selectAll("g.seriesScatter");
+			seriesContainer = d3.select("#seriesContainer");			
+			columnSeries = seriesContainer.selectAll("g.seriesColumn");
+			lineSeries = seriesContainer.selectAll("path");
+			lineSeriesDotGroups = seriesContainer.selectAll("g.lineSeriesDots");
+			var scatterSeries = seriesContainer.selectAll("g.seriesScatter");
 			
 			var columnRects;
 			
 			if(g.isBargrid()) {
 				//add bars to chart
-				columnGroups = g.seriesContainer.selectAll("g.seriesColumn")
+				columnGroups = seriesContainer.selectAll("g.seriesColumn")
 					.data(sbt.bargrid)
 					.attr("fill",function(d,i){return d.color? d.color : colors[i+sbt.line.length]});
 				
@@ -1228,7 +1230,7 @@ function Gneiss(config)
 				//Not a bargrid
 				
 				//add columns to chart
-				columnGroups = g.seriesContainer.selectAll("g.seriesColumn")
+				columnGroups = seriesContainer.selectAll("g.seriesColumn")
 					.data(sbt.column)
 					.attr("fill",function(d,i){return d.color? d.color : colors[i+sbt.line.length]});
 				
@@ -1270,7 +1272,7 @@ function Gneiss(config)
 				columnRects.exit().remove();
 			
 				//add lines
-				lineSeries = g.seriesContainer.selectAll("path")
+				lineSeries = seriesContainer.selectAll("path")
 					.data(sbt.line)
 					.attr("stroke",function(d,i){return d.color? d.color : colors[i]});
 
@@ -1291,7 +1293,7 @@ function Gneiss(config)
 				lineSeries.exit().remove();			
 			
 				//Add dots to the appropriate line series
-				var lineSeriesDotGroups = g.seriesContainer.selectAll("g.lineSeriesDots")
+				var lineSeriesDotGroups = seriesContainer.selectAll("g.lineSeriesDots")
 					.data(sbt.line)
 					.attr("fill",function(d,i){return d.color? d.color : colors[i]});
 			
@@ -1330,7 +1332,7 @@ function Gneiss(config)
 				lineSeriesDots.exit().remove();
 								
 				//add scatter
-				scatterGroups = g.seriesContainer.selectAll("g.seriesScatter")
+				scatterGroups = seriesContainer.selectAll("g.seriesScatter")
 					.data(sbt.scatter)
 					.attr("fill", function(d,i){return d.color? d.color : colors[i]});
 				
