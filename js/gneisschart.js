@@ -1070,6 +1070,13 @@ function Gneiss(config)
 		
 		var seriesContainer;
 		
+		var lineDependentFill = function(d,i) {
+			return d.color ? d.color : colors[i+sbt.line.length];
+		};
+		var lineIndependentFill = function(d,i) {
+			return d.color ? d.color : colors[i];
+		}
+				
 		if(first) {
 			// Create a element to contain series
 			seriesContainer = g.chartElement().append("g")
@@ -1085,7 +1092,7 @@ function Gneiss(config)
 				.enter()
 				.append("g") 
 					.attr("class", "seriesColumn seriesGroup")
-					.attr("fill", function(d,i){return d.color? d.color : colors[i+sbt.line.length]})
+					.attr("fill", lineDependentFill)
 					.attr("transform", function(d,i){return translate(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2), 0)});
 					
 			columnGroups.selectAll("rect")
@@ -1103,7 +1110,7 @@ function Gneiss(config)
 				.append("path")
 					.attr("d",function(d,j) { yAxisIndex = d.axis; pathString = y[d.axis].line(d.data).split("L0,0").join("M").split("L0,0").join("");  return pathString.indexOf("NaN")==-1?pathString:"M0,0"})
 					.attr("class","seriesLine seriesGroup")
-					.attr("stroke",function(d,i){return d.color? d.color : colors[i]})
+					.attr("stroke", lineIndependentFill)
 					.attr("stroke-width",3)
 					.attr("stroke-linejoin","round")
 					.attr("stroke-linecap","round")
@@ -1113,7 +1120,7 @@ function Gneiss(config)
 				.enter()
 				.append("g")
 				.attr("class","lineSeriesDots seriesGroup")
-				.attr("fill", function(d,i){return d.color? d.color : colors[i]});
+				.attr("fill", lineIndependentFill);
 			
 			lineSeriesDotGroups
 				.filter(function(d){return d.data.length < 15}) // Don't show individual data points on dense line series
@@ -1132,7 +1139,7 @@ function Gneiss(config)
 				.enter()
 				.append("g")
 				.attr("class","seriesScatter seriesGroup")
-				.attr("fill", function(d,i){return d.color? d.color : colors[i]});
+				.attr("fill", lineIndependentFill);
 
 			scatterDots = scatterGroups
 				.selectAll("circle")
@@ -1162,7 +1169,7 @@ function Gneiss(config)
 				//add bars to chart
 				columnGroups = seriesContainer.selectAll("g.seriesColumn")
 					.data(sbt.bargrid)
-					.attr("fill",function(d,i){return d.color? d.color : colors[i+sbt.line.length]});
+					.attr("fill", lineDependentFill);
 				
 				columnGroups.enter()
 					.append("g") 
@@ -1238,7 +1245,7 @@ function Gneiss(config)
 				//add columns to chart
 				columnGroups = seriesContainer.selectAll("g.seriesColumn")
 					.data(sbt.column)
-					.attr("fill",function(d,i){return d.color? d.color : colors[i+sbt.line.length]});
+					.attr("fill", lineDependentFill);
 				
 				//remove bargrid labels
 				columnGroups.selectAll("text.barLabel").remove();
@@ -1246,7 +1253,7 @@ function Gneiss(config)
 				columnGroups.enter()
 					.append("g") 
 						.attr("class","seriesColumn")
-						.attr("fill",function(d,i){return d.color? d.color : colors[i+sbt.line.length]})
+						.attr("fill",lineDependentFill)
 						.attr("transform",function(d,i){return translate(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2), 0)});
 					
 				columnSeries.transition()
@@ -1301,13 +1308,13 @@ function Gneiss(config)
 				//Add dots to the appropriate line series
 				var lineSeriesDotGroups = seriesContainer.selectAll("g.lineSeriesDots")
 					.data(sbt.line)
-					.attr("fill",function(d,i){return d.color? d.color : colors[i]});
+					.attr("fill",lineIndependentFill);
 			
 				lineSeriesDotGroups
 					.enter()
 					.append("g")
 					.attr("class","lineSeriesDots")
-					.attr("fill", function(d,i){return d.color? d.color : colors[i]});
+					.attr("fill", lineIndependentFill);
 				
 				lineSeriesDotGroups.exit().remove();
 			
@@ -1338,7 +1345,7 @@ function Gneiss(config)
 				//add scatter
 				scatterGroups = seriesContainer.selectAll("g.seriesScatter")
 					.data(sbt.scatter)
-					.attr("fill", function(d,i){return d.color? d.color : colors[i]});
+					.attr("fill", lineIndependentFill);
 				
 				scatterGroups.enter()
 					.append("g")
