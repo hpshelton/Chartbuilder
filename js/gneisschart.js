@@ -529,23 +529,25 @@ function Gneiss(config)
         
 		for (var i = series.length - 1; i >= 0; i--) {
 			// Plot this series against the right y-axis if no axis has been defined yet
-			if(series[i].axis === undefined) {
+			if(series[i].axis === undefined || series[i].axis === null) {
 				series[i].axis = 0;
 			}
-			
-			// This useLowestValueInAllSeries flag changes the independence
-			// of the y-axii significantly.
-			//
-			// Setting it to true means that the extents for the right y-axis
-			// use the smallest number in any series that will be graphed on either
-			// axis, regardless of whether or not the series containing that value
-			// is graphed against the right y-axis or not. 
-			//
-			// Setting it to false results in completely independent axii such that
-			// the extents are determined only by the values in the series charted 
-			// against the axis in question. The right y-axis extents will be
-			// dependent only on series graphed against the right y-axis.
-			var useLowestValueInAllSeries = false;
+		}
+	
+		// This useLowestValueInAllSeries flag changes the independence
+		// of the y-axii significantly.
+		//
+		// Setting it to true means that the extents for the right y-axis
+		// use the smallest number in any series that will be graphed on either
+		// axis, regardless of whether or not the series containing that value
+		// is graphed against the right y-axis or not. 
+		//
+		// Setting it to false results in completely independent axii such that
+		// the extents are determined only by the values in the series charted 
+		// against the axis in question. The right y-axis extents will be
+		// dependent only on series graphed against the right y-axis.
+		var useLowestValueInAllSeries = false;
+		for (var i = y.length - 1; i >= 0; i--) {	
 			
 			if(y[i]) {
 				y[i].domain = Gneiss.helper.multiextent(g.series(), function(a) {
@@ -561,17 +563,16 @@ function Gneiss(config)
 				if(g.isBargrid()) {
 					y[i].domain[0] = Math.min(y[i].domain[0], 0);
 				}
+				
+				// Set the domain of the y-axis
+				if(!y[i].scale) {
+					y[i].scale = d3.scale.linear();
+				}			
+				y[i].scale.domain(y[i].domain);
 			}
 		}
 					
-		// Set the domain and range of the y-axis
-		for (var i = y.length - 1; i >= 0; i--) {
-			if(!y[i].scale) {
-				y[i].scale = d3.scale.linear();
-			}			
-			y[i].scale.domain(y[i].domain);
-		}
-				
+		// Set the range of the y-axis
 		if(g.isBargrid()) {
 			var width = (g.width() / g.seriesByType().bargrid.length) - p.right;
 			for (var i = y.length - 1; i >= 0; i--) {
@@ -683,8 +684,8 @@ function Gneiss(config)
 			y.line = d3.svg.line();
 			
 			// TODO: The reference here to the global yAxisIndex should be replaced
-			y.line.y(function(d,j) { return d || d===0 ? g.yAxis()[yAxisIndex].scale(d) : null });
-			y.line.x(function(d,j) { return d || d===0 ? g.xAxis().scale(g.xAxisRef()[0].data[j]) : null });
+			y.line.y(function(d,j) { return d || d === 0 ? g.yAxis()[yAxisIndex].scale(d) : null });
+			y.line.x(function(d,j) { return d || d === 0 ? g.xAxis().scale(g.xAxisRef()[0].data[j]) : null });
 		}
 		return this;
 	};

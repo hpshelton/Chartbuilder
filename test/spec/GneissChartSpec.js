@@ -235,6 +235,9 @@ describe("Gneiss", function() {
         var multipleData = [[1, 2, 3, 4], [1, 2, 3, 4]];
         var multipleData2 = [[1, 3, 5, 7, 9], [-1, -3, -5, -7, -9]];
 				
+        var passThrough = function(array) {
+          return array;
+        };   
         var timesTwo = function(array) {
           for(var i = 0; i < array.length; i++) {
             array[i] *= 2;
@@ -254,6 +257,7 @@ describe("Gneiss", function() {
           return array;
         };
         
+        expect(Gneiss.helper.multiextent(singleData, passThrough)).toEqual([1, 4]);
         expect(Gneiss.helper.multiextent(singleData, timesTwo)).toEqual([2, 8]);
         expect(Gneiss.helper.multiextent(multipleData, square)).toEqual([1, 16]);
         expect(Gneiss.helper.multiextent(multipleData2, negate)).toEqual([-9, 9]);
@@ -282,6 +286,17 @@ describe("Gneiss", function() {
       expect(series[1].axis).toEqual(0);
     });
     
+    it("sets the axis number for all series for which it is currently null", function() {
+      var series = gneiss.series();
+      series[0].axis = null;
+      series[1].axis = null;
+            
+      gneiss.setYScales();
+      
+      expect(series[0].axis).toEqual(0);
+      expect(series[1].axis).toEqual(0);
+    });
+    
     it("ignores the axis number for all series for which it is currently set", function() {
       var series = gneiss.series();
       series[0].axis = 1;
@@ -293,7 +308,7 @@ describe("Gneiss", function() {
       expect(series[1].axis).toEqual(190);
     });
     
-    it("sets the domain value for all y-axii in a default chart", function() {
+    it("sets the domain value for all y-axii in a single-axis chart", function() {
       var y = gneiss.yAxis();
       y[0].domain = [null, null];
       
@@ -301,8 +316,23 @@ describe("Gneiss", function() {
       
       expect(y[0].domain).toEqual([3.8, 23]);
     });
+   
+    it("sets the domain value for all y-axii in a multi-axis chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();          
+      y[0].domain = [null, null];
+      y[1] = { domain: [null, null] };
+      
+      gneiss.setYScales();
+      
+      expect(y[0].domain).toEqual([3.8, 10.2]);
+      expect(y[1].domain).toEqual([7, 23]);
+    });
     
-    it("sets the domain value for all y-axii in a bar chart", function() {
+    it("sets the domain value for all y-axii in a single-axis bar chart", function() {
       var y = gneiss.yAxis();
       y[0].domain = [null, null];
       
@@ -314,7 +344,25 @@ describe("Gneiss", function() {
       expect(y[0].domain).toEqual([0, 23]);
     });
     
-    it("creates scales for all y-axii in a default chart", function() {
+    it("sets the domain value for all y-axii in a multi-axis bar chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();          
+      y[0].domain = [null, null];
+      y[1] = { domain: [null, null] };
+      
+      gneiss.isBargrid(true);
+      gneiss.seriesByType({ bargrid: ["bar"] });
+      
+      gneiss.setYScales();
+      
+      expect(y[0].domain).toEqual([0, 10.2]);
+      expect(y[1].domain).toEqual([0, 23]);
+    });
+        
+    it("creates scales for all y-axii in a single-axis chart", function() {
       var y = gneiss.yAxis();
       y[0].scale = null;
       
@@ -323,8 +371,26 @@ describe("Gneiss", function() {
       expect(y[0].scale).not.toEqual(null);
       expect(y[0].scale).not.toEqual(undefined);
     });
-    
-    it("creates scales for all y-axii in a bar chart", function() {
+        
+    it("creates scales for all y-axii in a multi-axis chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();
+      y[0].scale = null;
+      y[1] = { domain: [null, null], scale: null};
+      
+      gneiss.setYScales();
+      
+      expect(y[0].scale).not.toEqual(null);
+      expect(y[0].scale).not.toEqual(undefined);
+      
+      expect(y[1].scale).not.toEqual(null);
+      expect(y[1].scale).not.toEqual(undefined);
+    });
+        
+    it("creates scales for all y-axii in a single-axis bar chart", function() {
       var y = gneiss.yAxis();
       y[0].scale = null;
       
@@ -336,8 +402,29 @@ describe("Gneiss", function() {
       expect(y[0].scale).not.toEqual(null);
       expect(y[0].scale).not.toEqual(undefined);
     });
-    
-    it("sets domains for all y-axii scales in a default chart", function() {
+        
+    it("creates scales for all y-axii in a multi-axis bar chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();
+      y[0].scale = null;
+      y[1] = { domain: [null, null], scale: null};
+      
+      gneiss.isBargrid(true);
+      gneiss.seriesByType({ bargrid: ["bar"] });
+      
+      gneiss.setYScales();
+      
+      expect(y[0].scale).not.toEqual(null);
+      expect(y[0].scale).not.toEqual(undefined);
+      
+      expect(y[1].scale).not.toEqual(null);
+      expect(y[1].scale).not.toEqual(undefined);
+    });
+        
+    it("sets domains for all y-axii scales in a single-axis chart", function() {
       var y = gneiss.yAxis();
       y[0].scale = null;
       
@@ -346,7 +433,22 @@ describe("Gneiss", function() {
       expect(y[0].scale.domain()).toEqual([3, 23]);
     });
     
-    it("sets domains for all y-axii scales in a bar chart", function() {
+    it("sets domains for all y-axii scales in a multi-axis chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();
+      y[0].scale = null;
+      y[1] = { domain: [null, null], scale: null};
+      
+      gneiss.setYScales();
+      
+      expect(y[0].scale.domain()).toEqual([3, 11]);
+      expect(y[1].scale.domain()).toEqual([7, 23]);
+    });
+    
+    it("sets domains for all y-axii scales in a single-axis bar chart", function() {
       var y = gneiss.yAxis();
       y[0].scale = null;
       
@@ -358,7 +460,25 @@ describe("Gneiss", function() {
       expect(y[0].scale.domain()).toEqual([0, 23]);
     });
     
-    it("sets ranges for all y-axii scales in a default chart", function() {
+    it("sets domains for all y-axii scales in a multi-axis bar chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();
+      y[0].scale = null;
+      y[1] = { domain: [null, null], scale: null};
+      
+      gneiss.isBargrid(true);
+      gneiss.seriesByType({ bargrid: ["bar"] });
+      
+      gneiss.setYScales();
+      
+      expect(y[0].scale.domain()).toEqual([0, 11]);
+      expect(y[1].scale.domain()).toEqual([0, 23]);
+    });
+    
+    it("sets ranges for all y-axii scales in a single-axis chart", function() {
       var y = gneiss.yAxis();
       y[0].scale = null;
       
@@ -367,7 +487,22 @@ describe("Gneiss", function() {
       expect(y[0].scale.range()).toEqual([661, 25]);
     });
     
-    it("sets ranges for all y-axii scales in a bar chart", function() {
+    it("sets ranges for all y-axii scales in a multi-axis chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();
+      y[0].scale = null;
+      y[1] = { domain: [null, null], scale: null};
+      
+      gneiss.setYScales();
+      
+      expect(y[0].scale.range()).toEqual([661, 25]);
+      expect(y[1].scale.range()).toEqual([661, 25]);
+    });
+        
+    it("sets ranges for all y-axii scales in a single-axis bar chart", function() {
       var y = gneiss.yAxis();
       y[0].scale = null;
       
@@ -377,6 +512,24 @@ describe("Gneiss", function() {
       gneiss.setYScales();
       
       expect(y[0].scale.range()).toEqual([10, -10]);
+    });
+    
+    it("sets ranges for all y-axii scales in a multi-axis bar chart", function() {
+      var series = gneiss.series();
+      series[0].axis = 0;
+      series[1].axis = 1;
+      
+      var y = gneiss.yAxis();
+      y[0].scale = null;
+      y[1] = { domain: [null, null], scale: null};
+      
+      gneiss.isBargrid(true);
+      gneiss.seriesByType({ bargrid: ["bar"] });
+      
+      gneiss.setYScales();
+      
+      expect(y[0].scale.range()).toEqual([10, -10]);
+      expect(y[1].scale.range()).toEqual([10, -10]);
     });
   });
  
@@ -393,7 +546,7 @@ describe("Gneiss", function() {
       expect(gneiss.height()).toEqual(5000);     
     });
     
-    it("sets a transform attribute on the metaInfo property", function() {      
+    it("sets a transform attribute on the footer element", function() {      
       $("#" + containerId).width("100px").height("100px");
       gneiss.resize();
       expect(gneiss.footerElement().attr("transform")).toEqual("translate(0,96)");
