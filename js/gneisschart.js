@@ -1031,7 +1031,7 @@ function Gneiss(config)
   
   this.drawSeriesAndLegend = function Gneiss$drawSeriesAndLegend(first){
 		this.drawSeries(first);
-		this.drawLegend();
+		this.drawLegend(first);
 		return this;
 	};
   
@@ -1066,11 +1066,6 @@ function Gneiss(config)
 			columnSeries = g.seriesContainer.selectAll("g.seriesColumn");
 			var lineSeriesDots = g.seriesContainer.selectAll("g.lineSeriesDots");
 			var scatterSeries = g.seriesContainer.selectAll("g.seriesScatter");
-			
-			// Create a group to contain the legend items
-			// TODO: Move this to drawLegend() where it belongs
-			g.legendItemContainer = g.chartElement().append("g")
-				.attr("id","legendItemContainer");
 				
 			//add columns to chart
 			columnGroups = columnSeries.data(sbt.column)
@@ -1391,86 +1386,89 @@ function Gneiss(config)
 		return this;
 	};
   
-  this.drawLegend = function Gneiss$drawLegend() {
+  this.drawLegend = function Gneiss$drawLegend(first) {
 		var g = this;
-		var legendItemY;
-		
+		var series = g.series();
 		var colors = g.colors();
+		var padding = g.padding();
 		
-		//remove current legends
-		g.legendItemContainer.selectAll("g.legendItem").remove()
+		// Remove the current legend
+		d3.select("#legendItemContainer").remove();
+		
+		// Create a element to contain the legend items
+		var	legendContainerElement = g.chartElement().append("g").attr("id", "legendItemContainer");
 		
 		if(!g.isBargrid()) {
-			//add legend to chart
-			var legendGroups = g.legendItemContainer.selectAll("g")
-				.data(g.series());
+			var legendItems = legendContainerElement.selectAll("g").data(series);
 
-			var legItems = 	legendGroups.enter()
+			var newLegendItems = legendItems.enter()
 				.append("g")
-				.attr("class","legendItem")
-				.attr("transform",function(d,i) {
+				.attr("class", "legendItem")
+				.attr("transform", function(d,i) {
 					if(g.yAxis().length == 1) {
-						return "translate("+g.padding().left+","+(g.padding().top-25)+")"
+						return "translate(" + padding.left + "," + (padding.top-25) + ")";
 					}
 					else {
-						return "translate("+g.padding().left+","+(g.padding().top-50)+")"
+						return "translate(" + padding.left + "," + (padding.top-50) + ")"
 					}
 				});
+				
+			legendItems.exit().remove();
 
-			legendGroups.exit().remove()
+			newLegendItems.append("text")
+				.filter(function() { return series.length > 1 })
+				.attr("class", "legendItemLabel")
+				.attr("x", 12)
+				.attr("y", 18)
+				.attr("fill", function(d,i) { return d.color ? d.color : colors[i] })
+				.text(function(d,i) { return d.name });
+					
+			if(series.length > 1) {
+				newLegendItems.append("rect")
+					.attr("width", 10)
+					.attr("height", 10)
+					.attr("x", 0)
+					.attr("y", 8)
+					.attr("fill", function(d,i) { return d.color ? d.color : colors[i] });
 
-			var legLabels = legItems.append("text")
-					.filter(function(){return g.series().length > 1})
-					.attr("class","legendLabel")
-					.attr("x",12)
-					.attr("y",18)
-					.attr("fill",function(d,i){return d.color? d.color : colors[i]})
-					.text(function(d,i){return d.name});
-			
-			//if there is more than one line
-			if(g.series().length > 1) {
-				legItems.append("rect")
-					.attr("width",10)
-					.attr("height",10)
-					.attr("x",0)
-					.attr("y",8)
-					.attr("fill", function(d,i){return d.color? d.color : colors[i]})
-
-				legendGroups.filter(function(d){return d != g.series()[0]})
-					.transition()
-					.duration(50)
-					.delay(function(d,i){return i * 50 + 50})
-					.attr("transform",function(d,i) {
-						//label isn't for the first series
-						var prev = d3.select(legendGroups[0][i]);
+				legendItems.filter(function(d) { return d !== series[0] })
+					.attr("transform", function(d,i) {
+						var prev = d3.select(legendItems[0][i]);
 						var prevWidth = parseFloat(prev.node().getBoundingClientRect().width);
 						var prevCoords = Gneiss.helper.getTransformCoordinates(prev);
-
-						var cur = d3.select(this);
-						var curWidth = parseFloat(cur.node().getBoundingClientRect().width);
-						var curCoords = Gneiss.helper.getTransformCoordinates(cur);
-
-						legendItemY = prevCoords.y;
+						
+						var curWidth = parseFloat(d3.select(this).node().getBoundingClientRect().width);
+						
+						/*
+						 * The initial positions of the legendItems are incorrect. This can be fixed by
+						 * taking into account that the items haven't been drawn on the screen yet and 
+						 * thus getBoundingClientRect returns incorrect widths, but that requires us to
+						 * know this is the first call to drawLegend(). Unfortunately, drawLegend() is
+						 * called multiple times in the course of the first rendering, and the second
+						 * iteration on don't pass the first parameter, so the correct values are overriden.
+						 * When the rendering loop is fixed, uncomment this to get correct initial positions.
+						 * if(first) {
+						 *   // The legendItems havn't been drawn on the screen yet
+						 *	 // so the bounding rectangle is incorrect
+						 *	 curWidth += 10;
+						 *	 prevWidth += 10;
+						 * }
+						 */
+						
+						var y = prevCoords.y;
 						var x = prevCoords.x + prevWidth + 5;
 						if(x + curWidth >  g.width()) {
-							x = g.padding().left;
-							legendItemY += 15;						
+							x = padding.left;
+							y += 15;			
 						}
-						return "translate("+x+","+legendItemY+")";
-				})
-				//.filter(function(d,i){console.log(i,g.series().slice(0).pop()==d);return d == g.series().slice(0).pop()})
-				//.each("end", function(d,i) {
-				//	//the filter above makes sure this only hapens on the last one
-				//	if (legendItemY > 0 && g.defaults.padding().top != legendItemY + 25) { //CHANGE
-				//		g.defaults.padding().top = legendItemY + 25;
-				//		g.all.redraw();
-				//				
-				//	};
-				//})		
-				//test if the chart needs more top margin because of a large number of legend items				
-			} else {
-				if(g.title() == "") {
-					g.titleElement().text(g.series()[0].name)
+						return "translate(" + x + "," + y + ")";
+				})			
+			} 
+			else {
+				if(g.title() === "") {
+					// Promote the series name to chart title if no title
+					// already exists and there's only one series
+					g.titleElement().text(series[0].name);
 				}
 			}
 		}
