@@ -449,13 +449,13 @@ function Gneiss(config)
 		
 		//add rect, use as a background to prevent transparency
 		g.chartElement().append("rect")
-			.attr("id","ground")
+			.attr("id", "ground")
 			.attr("width", g.width())
 			.attr("height", g.height());
 			
 		//add a rect to allow for styling of the chart area
 		g.chartElement().append("rect")
-			.attr("id","plotArea")
+			.attr("id", "plotArea")
 			.attr("width", g.width())
 			.attr("height", g.height())
 		
@@ -464,9 +464,9 @@ function Gneiss(config)
 		this.updateGraphPropertiesBasedOnSeriesType(g, g.seriesByType());
 		
 		g.titleElement(g.chartElement().append("text")
-			.attr("y",18)
+			.attr("y", 18)
 			.attr("x", g.padding().left)
-			.attr("id","titleLine")
+			.attr("id", "titleLine")
 			.text(g.title()));
 		
 		this.calculateColumnWidths()
@@ -1322,12 +1322,11 @@ function Gneiss(config)
 					.selectAll("circle")
 					.data(function(d,i){return d.data});
 					
-				lineSeriesDotGroups.filter(function(d){return d.data.length >= 15})
-					.remove();				
+				lineSeriesDotGroups.filter(function(d){return d.data.length >= 15}).remove();				
 				
 				var lineTransformFunction = function(d,i) {
 					yAxisIndex = d3.select(this.parentNode).data()[0].axis;
-					var yCoord = d || d ===0 ? y[yAxisIndex].scale(d) : -100;
+					var yCoord = d || d === 0 ? y[yAxisIndex].scale(d) : -100;
 					return translate(x.scale(g.xAxisRef()[0].data[i]), yCoord);
 				};
 				
