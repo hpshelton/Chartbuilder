@@ -194,11 +194,17 @@ Gneiss.helper = {
     var separator = transform.indexOf(",") > -1 ? "," : " ";
     var trans = transform.split(separator);
     return { x: (trans[0] ? parseFloat(trans[0].split("(")[1]) : 0), y: (trans[1] ? parseFloat(trans[1].split(")")[0]) : 0) };
-  }
+  },
+	getTranslateString: function(x, y) {
+		if(x === undefined || x === null || y === undefined || y === null) {
+			throw "Invalid getTranslate() usage";
+		}
+		return "translate(" + x + "," + y + ")";
+	}
 };
 
 function Gneiss(config)
-{ 	
+{
 	var containerElement;
 	var chartElement;
 	var titleElement;
@@ -473,7 +479,7 @@ function Gneiss(config)
 		
 		g.footerElement(g.chartElement().append("g")
 			.attr("id", "footer")
-			.attr("transform", "translate(0," + (g.height() - 4) + ")"));
+			.attr("transform", Gneiss.helper.getTranslateString(0, g.height() - 4)));
 		
 		g.sourceElement(g.footerElement().append("text")
 			.attr("text-anchor", "end")
@@ -507,7 +513,7 @@ function Gneiss(config)
 			.attr("height", g.height());
       
 		// Fix the position of the footer
-		g.footerElement().attr("transform", "translate(0," + (g.height() - 4) + ")");
+		g.footerElement().attr("transform", Gneiss.helper.getTranslateString(0, g.height() - 4));
 		
 		return this;
 	};
@@ -616,7 +622,7 @@ function Gneiss(config)
 		g.padding().bottom = padding_bottom;
 		
 		d3.select("#plotArea")
-			.attr("transform", "translate(" + g.padding().left + "," + g.padding().top + ")")
+			.attr("transform", Gneiss.helper.getTranslateString(g.padding().left, g.padding().top))
 			.attr("width", g.width() - g.padding().left - g.padding().right)
 			.attr("height", g.height() - g.padding().top - g.padding().bottom);
 			
@@ -708,7 +714,7 @@ function Gneiss(config)
 			axisGroup = g.chartElement().append("g")
 				.attr("class", "axis yAxis")
 				.attr("id", rightAxis ? "rightAxis" : "leftAxis")
-				.attr("transform", rightAxis ? "translate(" + g.padding().left + ",0)" : "translate(" + (g.width() - g.padding().right) + ",0)")
+				.attr("transform", rightAxis ? Gneiss.helper.getTranslateString(g.padding().left, 0) : Gneiss.helper.getTranslateString((g.width() - g.padding().right), 0))
 				.call(y.axis);
 			
 			// Store the top-most axis item for future use
@@ -944,7 +950,7 @@ function Gneiss(config)
 		g.chartElement().append("g")
 			.attr("class", "axis")
 			.attr("id", "xAxis")
-			.attr("transform", g.isBargrid() ? "translate(" + g.padding().left + ",0)" : "translate(0," + (g.height() - g.padding().bottom + 8) + ")")
+			.attr("transform", g.isBargrid() ? Gneiss.helper.getTranslateString(g.padding().left, 0) : Gneiss.helper.getTranslateString(0, (g.height() - g.padding().bottom + 8)))
 			.call(x.axis);	
 		
 		// Adjust label position		
@@ -1049,6 +1055,7 @@ function Gneiss(config)
 		var colors = g.colors();		
 		var columnWidth = g.columnWidth();
 		var columnGroupShift = g.columnGroupShift();
+		var translate = Gneiss.helper.getTranslateString;
 		
 		// Construct line maker Gneiss.helper functions for each yAxis
 		this.setLineMakers();
@@ -1078,7 +1085,7 @@ function Gneiss(config)
 				.append("g") 
 					.attr("class", "seriesColumn seriesGroup")
 					.attr("fill", function(d,i){return d.color? d.color : colors[i+sbt.line.length]})
-					.attr("transform", function(d,i){return "translate("+(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2)) + ",0)"});
+					.attr("transform", function(d,i){return translate(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2), 0)});
 					
 			columnGroups.selectAll("rect")
 				.data(function(d,i){return d.data})
@@ -1115,10 +1122,8 @@ function Gneiss(config)
 					.append("circle")
 					.attr("r",4)
 					.attr("transform",function(d,i){
-						yAxisIndex = d3.select(this.parentNode).data()[0].axis; 
-						return "translate("+(x.type=="date" ?
-							x.scale(g.xAxisRef()[0].data[i]):
-							x.scale(i)) + "," + y[yAxisIndex].scale(d) + ")"
+						yAxisIndex = d3.select(this.parentNode).data()[0].axis;
+						return translate(x.type === "date" ? x.scale(g.xAxisRef()[0].data[i]) : x.scale(i), y[yAxisIndex].scale(d));
 					});
 			
 			//add scatter to chart
@@ -1133,16 +1138,14 @@ function Gneiss(config)
 				.data(function(d){return d.data});
 				
 			scatterDots.enter()
-					.append("circle")
-					.attr("r",4)
-					.attr("stroke","#fff")
-					.attr("stroke-width","1")
-					.attr("transform",function(d,i){
-						yAxisIndex = d3.select(this.parentNode).data()[0].axis; 
-						return "translate("+(x.type=="date" ?
-							x.scale(g.xAxisRef()[0].data[i]):
-							x.scale(i)) + "," + y[yAxisIndex].scale(d) + ")"
-					});
+				.append("circle")
+				.attr("r",4)
+				.attr("stroke","#fff")
+				.attr("stroke-width","1")
+				.attr("transform", function(d,i){
+					yAxisIndex = d3.select(this.parentNode).data()[0].axis;
+					return translate(x.type === "date" ? x.scale(g.xAxisRef()[0].data[i]) : x.scale(i), y[yAxisIndex].scale(d));
+				});
 		}
 		else {
 			//update don't create
@@ -1164,7 +1167,7 @@ function Gneiss(config)
 					.append("g") 
 						.attr("class","seriesColumn")
 						.attr("fill",function(d,i){return d.color? d.color : colors[i+g.series().length]})
-						.attr("transform",function(d,i){return "translate(0," + g.padding().top + ")"});
+						.attr("transform",function(d,i){return translate(0, g.padding().top)});
 				
 				var bargridLabel = columnGroups.selectAll("text.bargridLabel")
 					.data(function(d,i){return [d]});				
@@ -1185,7 +1188,7 @@ function Gneiss(config)
 				
 				columnSeries.transition()
 					.duration(500)
-					.attr("transform",function(d,i){return "translate("+(i * ( g.width()-g.padding().left)/g.series().length)+",0)"});
+					.attr("transform",function(d,i){return translate(i * (g.width()-g.padding().left)/g.series().length, 0)});
 					
 				columnGroups.exit().remove();				
 				
@@ -1243,11 +1246,11 @@ function Gneiss(config)
 					.append("g") 
 						.attr("class","seriesColumn")
 						.attr("fill",function(d,i){return d.color? d.color : colors[i+sbt.line.length]})
-						.attr("transform",function(d,i){return "translate("+(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2))+",0)"});
+						.attr("transform",function(d,i){return translate(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2), 0)});
 					
 				columnSeries.transition()
 					.duration(500)
-					.attr("transform",function(d,i){return "translate("+(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2))+",0)"});
+					.attr("transform",function(d,i){return translate(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2), 0)});
 			
 				columnGroups.exit().remove();
 			
@@ -1314,22 +1317,20 @@ function Gneiss(config)
 				lineSeriesDotGroups.filter(function(d){return d.data.length >= 15})
 					.remove();				
 				
+				var lineTransformFunction = function(d,i) {
+					yAxisIndex = d3.select(this.parentNode).data()[0].axis;
+					var yCoord = d || d ===0 ? y[yAxisIndex].scale(d) : -100;
+					return translate(x.scale(g.xAxisRef()[0].data[i]), yCoord);
+				};
+				
 				lineSeriesDots.enter()
 					.append("circle")
-					.attr("r",4)
-					.attr("transform",function(d,i){
-						yAxisIndex = d3.select(this.parentNode).data()[0].axis;
-							var yCoord = d || d ===0 ? y[yAxisIndex].scale(d) : -100;
-							return "translate("+ x.scale(g.xAxisRef()[0].data[i]) + "," + yCoord + ")";
-						});
+					.attr("r", 4)
+					.attr("transform", lineTransformFunction);
 			
 				lineSeriesDots.transition()
 					.duration(500)
-					.attr("transform",function(d,i){
-						yAxisIndex = d3.select(this.parentNode).data()[0].axis;
-							var yCoord = d || d ===0 ? y[yAxisIndex].scale(d) : -100;
-							return "translate("+ x.scale(g.xAxisRef()[0].data[i]) + "," + yCoord + ")";
-						});
+					.attr("transform", lineTransformFunction);
 			
 				lineSeriesDots.exit().remove();
 								
@@ -1349,22 +1350,21 @@ function Gneiss(config)
 					.selectAll("circle")
 					.data(function(d){return d.data});
 					
+				var scatterTransformFunction = function(d,i) {
+					yAxisIndex = d3.select(this.parentNode).data()[0].axis;
+					return translate(x.scale(g.xAxisRef()[0].data[i]), y[yAxisIndex].scale(d));
+				};
+				
 				scatterDots.enter()
-						.append("circle")
-						.attr("r",4)
-						.attr("stroke","#fff")
-						.attr("stroke-width","1")
-						.attr("transform",function(d,i){
-							yAxisIndex = d3.select(this.parentNode).data()[0].axis;
-							return "translate("+x.scale(g.xAxisRef()[0].data[i]) + "," + y[yAxisIndex].scale(d) + ")"
-						});
+					.append("circle")
+					.attr("r", 4)
+					.attr("stroke", "#fff")
+					.attr("stroke-width", "1")
+					.attr("transform", scatterTransformFunction);
 					
 				scatterDots.transition()
-						.duration(500)
-						.attr("transform",function(d,i){
-							yAxisIndex = d3.select(this.parentNode).data()[0].axis;
-							return "translate("+x.scale(g.xAxisRef()[0].data[i]) + "," + y[yAxisIndex].scale(d) + ")"
-						});
+					.duration(500)
+					.attr("transform", scatterTransformFunction);
 			}
 		}
 		
@@ -1411,10 +1411,10 @@ function Gneiss(config)
 				.attr("class", "legendItem")
 				.attr("transform", function(d,i) {
 					if(g.yAxis().length == 1) {
-						return "translate(" + padding.left + "," + (padding.top-25) + ")";
+						return Gneiss.helper.getTranslateString(padding.left, padding.top - 25);
 					}
 					else {
-						return "translate(" + padding.left + "," + (padding.top-50) + ")"
+						return Gneiss.helper.getTranslateString(padding.left, padding.top - 50);
 					}
 				});
 				
@@ -1466,7 +1466,7 @@ function Gneiss(config)
 							x = padding.left;
 							y += 15;			
 						}
-						return "translate(" + x + "," + y + ")";
+						return Gneiss.helper.getTranslateString(x, y);
 				})			
 			} 
 			else {
