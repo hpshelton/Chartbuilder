@@ -1056,6 +1056,7 @@ function Gneiss(config)
 		var columnWidth = g.columnWidth();
 		var columnGroupShift = g.columnGroupShift();
 		var translate = Gneiss.helper.getTranslateString;
+		var columnXandHeight = Gneiss.helper.columnXandHeight;
 		
 		// Construct line maker Gneiss.helper functions for each yAxis
 		this.setLineMakers();
@@ -1092,9 +1093,9 @@ function Gneiss(config)
 				.enter()
 					.append("rect")
 					.attr("width",columnWidth)
-					.attr("height", function(d,i){yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(y[yAxisIndex].scale(d)-y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain())))})
+					.attr("height", function(d,i){yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(y[yAxisIndex].scale(d)-y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain())))})
 					.attr("x", function(d,i) {return x.scale(g.xAxisRef()[0].data[i])  - columnWidth/2})
-					.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (y[yAxisIndex].scale(d)-y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain()))) >= 0 ? y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain())) : y[yAxisIndex].scale(d)});
+					.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (y[yAxisIndex].scale(d)-y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain()))) >= 0 ? y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain())) : y[yAxisIndex].scale(d)});
 			
 			//add lines to chart
 			lineSeries.data(sbt.line)
@@ -1260,19 +1261,19 @@ function Gneiss(config)
 				columnRects.enter()
 						.append("rect")
 						.attr("width",columnWidth)
-						.attr("height", function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(y[yAxisIndex].scale(d) - y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain())))})
+						.attr("height", function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(y[yAxisIndex].scale(d) - y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain())))})
 						.attr("x",function(d,i) {return x.scale(g.xAxisRef()[0].data[i])  - columnWidth/2})
-						.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (y[yAxisIndex].scale(d)-y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain()))) >= 0 ? y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain())) : y[yAxisIndex].scale(d)});
+						.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (y[yAxisIndex].scale(d)-y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain()))) >= 0 ? y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain())) : y[yAxisIndex].scale(d)});
 			
 				columnRects.transition()
 					.duration(500)
 					.attr("width",columnWidth)
-					.attr("height", function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(y[yAxisIndex].scale(d) - y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain())))})
+					.attr("height", function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(y[yAxisIndex].scale(d) - y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain())))})
 					.attr("x",x.type =="date" ? 
 							function(d,i) {return x.scale(g.xAxisRef()[0].data[i])  - columnWidth/2}:
 							function(d,i) {return x.scale(i) - columnWidth/2}
 					)
-					.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (y[yAxisIndex].scale(d)-y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain()))) >= 0 ? y[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,y[yAxisIndex].scale.domain())) : y[yAxisIndex].scale(d)});
+					.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (y[yAxisIndex].scale(d)-y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain()))) >= 0 ? y[yAxisIndex].scale(columnXandHeight(d,y[yAxisIndex].scale.domain())) : y[yAxisIndex].scale(d)});
 				
 				columnRects.exit().remove();
 			
