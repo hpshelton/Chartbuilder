@@ -506,6 +506,7 @@ function Gneiss(config)
 			.attr("width", g.width())
 			.attr("height", g.height());
       
+		// Fix the position of the footer
 		g.footerElement().attr("transform", "translate(0," + (g.height() - 4) + ")");
 		
 		return this;
@@ -1476,12 +1477,6 @@ function Gneiss(config)
 		return this;
 	};
   
-  this.updateMetaAndTitle = function Gneiss$updateMetaAndTitle() {
-		var g = this;
-		g.footerElement().attr("transform", "translate(0," + ( g.height() - 4) + ")");
-		return this;
-	};
-  
   this.splitSeriesByType = function Gneiss$splitSeriesByType(series) {
 		/*
 			Partition the data by the way it is supposed to be displayed
@@ -1535,8 +1530,7 @@ function Gneiss(config)
 			.setXScales()
 			.setYAxes()
 			.setXAxis()
-			.drawSeriesAndLegend()
-			.updateMetaAndTitle();
+			.drawSeriesAndLegend();
 		return this;
 	};
   
