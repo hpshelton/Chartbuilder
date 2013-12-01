@@ -5,7 +5,7 @@ describe("Gneiss", function() {
   
   beforeEach(function() {
 	  containerId = Gneiss.defaultGneissChartConfig.container.slice(1);
-    $('<div id="' + containerId + '" style="display:none"></div>').appendTo('body');
+    $('<div id="' + containerId + '" style="display:none; width: 800px; height: 600px"></div>').appendTo('body');
     
     gneiss = new Gneiss(Gneiss.defaultGneissChartConfig);
   });
@@ -484,7 +484,7 @@ describe("Gneiss", function() {
       
       gneiss.setYScales();
       
-      expect(y[0].scale.range()).toEqual([661, 25]);
+      expect(y[0].scale.range()).toEqual([550, 25]);
     });
     
     it("sets ranges for all y-axii scales in a multi-axis chart", function() {
@@ -498,8 +498,8 @@ describe("Gneiss", function() {
       
       gneiss.setYScales();
       
-      expect(y[0].scale.range()).toEqual([661, 25]);
-      expect(y[1].scale.range()).toEqual([661, 25]);
+      expect(y[0].scale.range()).toEqual([550, 25]);
+      expect(y[1].scale.range()).toEqual([550, 25]);
     });
         
     it("sets ranges for all y-axii scales in a single-axis bar chart", function() {
@@ -511,7 +511,7 @@ describe("Gneiss", function() {
       
       gneiss.setYScales();
       
-      expect(y[0].scale.range()).toEqual([10, -10]);
+      expect(y[0].scale.range()).toEqual([10, 790]);
     });
     
     it("sets ranges for all y-axii scales in a multi-axis bar chart", function() {
@@ -528,8 +528,134 @@ describe("Gneiss", function() {
       
       gneiss.setYScales();
       
-      expect(y[0].scale.range()).toEqual([10, -10]);
-      expect(y[1].scale.range()).toEqual([10, -10]);
+      expect(y[0].scale.range()).toEqual([10, 790]);
+      expect(y[1].scale.range()).toEqual([10, 790]);
+    });
+  });  
+  
+  describe("setXScales()", function() {  
+    it("creates a scale for a datetime x-axis", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.type = "date";
+      
+      gneiss.setXScales();
+      
+      expect(x.scale).not.toEqual(null);
+      expect(x.scale).not.toEqual(undefined);
+    });
+        
+    it("creates a scale for a non-datetime x-axis", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.type = "notdate";
+      
+      gneiss.setXScales();
+      
+      expect(x.scale).not.toEqual(null);
+      expect(x.scale).not.toEqual(undefined);
+    });
+    
+    it("sets the domain for a datetime x-axis scale", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.type = "date";
+      
+      // Create Dates using in UTC time zone strings
+      var xRef = gneiss.xAxisRef()[0].data = 
+        [new Date("2013-08-30T13:59:00.000Z"),
+         new Date("2013-08-29T07:00:00.000Z"),
+         new Date("2013-08-28T07:00:00.000Z"),
+         new Date("2013-08-27T07:00:00.000Z"),
+         new Date("2013-08-26T07:00:00.000Z")];
+      
+      gneiss.setXScales();
+      
+      // Ensure the Dates are in local time
+      expect(x.scale.domain()).toEqual(
+        [new Date("Mon Aug 26 2013 00:00:00 GMT-0700 (PDT)"),
+         new Date("Fri Aug 30 2013 6:59:00 GMT-0700 (PDT)")]);
+    });
+    
+    it("sets the domain for a non-datetime x-axis scale", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.type = "notdate";
+      
+      gneiss.setXScales();
+      
+      expect(x.scale.domain()).toEqual(['juicyness', 'color', 'flavor', 'travelability']);
+    });
+        
+    it("sets the range for a non-datetime x-axis scale in a default chart", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+            
+      gneiss.setXScales();
+      
+      var p = gneiss.padding();
+      expect(x.scale.range()).toEqual([10, 270, 530, 790]);
+    });
+        
+    it("sets the range for a datetime x-axis scale in a default chart", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.type = "date";
+      
+      gneiss.setXScales();
+      
+      var p = gneiss.padding();
+      expect(x.scale.range()).toEqual([10, 790]);
+    });
+        
+    it("sets the range for a non-datetime x-axis scale in a bar chart", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      
+      gneiss.isBargrid(true);
+      
+      gneiss.setXScales();
+      
+      var p = gneiss.padding();
+      expect(x.scale.range()).toEqual([25, 200, 375, 550]);
+    });
+        
+    it("sets the range for a datetime x-axis scale in a bar chart", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.type = "date";
+      
+      gneiss.isBargrid(true);
+      
+      gneiss.setXScales();
+      
+      var p = gneiss.padding();
+      expect(x.scale.range()).toEqual([25, 550]);         
+    });
+        
+    it("sets the range for a non-datetime x-axis scale in a chart containing columns", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.hasColumns = true;
+      gneiss.columnGroupWidth(100);
+      
+      gneiss.setXScales();
+      
+      var p = gneiss.padding();
+      expect(x.scale.range()).toEqual([60, 270, 480, 690]);
+    });
+        
+    it("sets the range for a datetime x-axis scale in a chart containing columns", function() {
+      var x = gneiss.xAxis();
+      x.scale = null;
+      x.type = "date";
+      x.hasColumns = true;
+      gneiss.columnGroupWidth(100);
+      
+      gneiss.setXScales();
+      
+      var p = gneiss.padding();
+      expect(x.scale.range()).toEqual([60, 690]);
     });
   });
  

@@ -440,9 +440,9 @@ function Gneiss(config)
 		
 		//append svg to container using svg
 		g.chartElement(d3.select(g.containerId()).append("svg")
-			.attr("id","chart")
-			.attr("width","100%") //set width to 100%
-			.attr("height","100%")); //set height to 100%
+			.attr("id", "chart")
+			.attr("width", "100%") //set width to 100%
+			.attr("height", "100%")); //set height to 100%
 			
 		g.width(g.containerElement().width()); //save the width in pixels
 		g.height(g.containerElement().height()); //save the height in pixels
@@ -646,7 +646,7 @@ function Gneiss(config)
 			// Create a linear scale with date keys between the input start and end dates
 			x.scale = d3.time.scale().domain(dateExtent);
 		}
-		else {			
+		else {
 			// Create a ordinal scale with with row name keys
 			x.scale = d3.scale.ordinal().domain(data);
 		}
@@ -657,10 +657,10 @@ function Gneiss(config)
 		if(g.isBargrid()) {
 			rangeArray = [p.top, g.height() - p.bottom];
 		}
-		else if(x.hasColumns) {
+		else if(x.hasColumns === true) {
 			var halfColumnWidth = g.columnGroupWidth() / 2;
 			rangeArray = [p.left + halfColumnWidth + ((g.yAxis().length == 1) ? 0 : halfColumnWidth),
-                    g.width() - p.right - g.columnGroupWidth()]; 
+                    g.width() - p.right - g.columnGroupWidth()];
 		}
 		else {
 			rangeArray = [p.left, g.width() - p.right];
