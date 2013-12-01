@@ -7,6 +7,7 @@ ChartBuilder = {
 						"006DBF","70B8FF","5DA1E1","4B89C4","3871A6","255A88","13436B","002B4D",
 						"9300BF","E770FF","CB5DE1","AE4BC4","9238A6","752588","59136B","3C004D"],
 	curRaw: "",
+	advancedMode: false,
 	getNewData: function(csv) {
 	
 		if(!csv) {
@@ -392,7 +393,6 @@ ChartBuilder = {
 				chart.series()[$(this).parent().data().index].color = $(this).val()
 				ChartBuilder.redraw()
 			})
-			
 			typer.change(function() {
 				var val = $(this).val();
 				var index = $(this).parent().data().index;
@@ -403,6 +403,7 @@ ChartBuilder = {
 				chart.setXScales()
 					.resize();
 				ChartBuilder.redraw();
+
 			})
 			
 			axer.change(function() {
@@ -491,8 +492,33 @@ ChartBuilder = {
 			creditline: g.credit()
 		};
 		
-		chart = g;
+		//chart = g;
+		ChartBuilder.updateInterface();
 		ChartBuilder.inlineAllStyles();
+	},
+	updateInterface: function() {
+		if(chart.xAxis().type == "date") {
+			$(".showonlywith-date").removeClass("hide")
+		}
+
+		if(chart.xAxis().type == "ordinal") {
+			$(".showonlywith-ordinal").removeClass("hide")
+		}
+
+		if(chart.xAxis().type != "date") {
+			$(".showonlywith-date").addClass("hide")
+		}
+
+		if(chart.xAxis().type != "ordinal") {
+			$(".showonlywith-ordinal").addClass("hide")
+		}
+
+		if(this.advancedMode) {
+			$(".advanced").removeClass("hide")
+		}
+		else {
+			$(".advanced").addClass("hide")
+		}
 	},
 	setChartArea: function() {
 		var hasBargrid = false;
@@ -505,13 +531,13 @@ ChartBuilder = {
 		
 		if(hasBargrid) {
 			$("#chartContainer").css("height",
-				chart.series()[0].data.length*22 + 
+				chart.series()[0].data.length * (chart.bargridBarThickness() + 2) + //CHANGE - MAGIC NUMBER
 				chart.padding().top + 
 				chart.padding().bottom
 				)
 		}
 		else {
-			$("#chartContainer").css("height",338)
+			$("#chartContainer").removeAttr("height").css("height","")
 		}
 	},
 	makeLegendAdjustable: function() {
@@ -622,7 +648,6 @@ ChartBuilder = {
 				val = null
 			}
 			chart.yAxis()[index].domain[1] = val;
-			chart.setYScales();
 			ChartBuilder.redraw()
 			ChartBuilder.inlineAllStyles();
 		},
@@ -789,9 +814,21 @@ ChartBuilder.start = function(config) {
   			else {
   				chart.xAxis().type = "ordinal";
   			}
+  			//TODO add a linear scale type
+
   			chart.xAxisRef([dataObj.data.shift()]);
   			
   			chart.series(dataObj.data);
+
+  			//if there is only one series (and isn't a bargrid), make the name of it the title and fill the title box
+  			if(chart.isBargrid()) {
+	  			if(chart.series().length === 1 && chart.title().length === 0 || chart.title() === chart.series()[0].name) {
+	  				chart.title(chart.series()[0].name)
+	  				chart.titleElement().text(chart.title())
+	  				$("#chart_title").val(chart.title())
+	  			}
+  			}
+
   			chart.setPadding();
   			
   			ChartBuilder.setChartArea();
@@ -902,7 +939,7 @@ ChartBuilder.start = function(config) {
   	});
   	
   	$(".downloadLink").click(function() {
-  		$(".downloadLink").toggleClass("hide")
+  		$("#downloadLinksDiv").toggleClass("hide");
   	})
   })
 };
